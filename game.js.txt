@@ -1,0 +1,69 @@
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// Bird properties
+const bird = { x: 50, y: 100, size: 20, gravity: 1.5, lift: -15, velocity: 0 };
+
+// Draw bird
+function drawBird() {
+    ctx.fillStyle = 'yellow';
+    ctx.beginPath();
+    ctx.arc(bird.x, bird.y, bird.size, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+// Pipe properties
+const pipes = [];
+const pipeWidth = 60;
+const pipeGap = 200;
+let frameCount = 0;
+
+// Add new pipes
+function addPipe() {
+    const pipeTop = Math.random() * (canvas.height - pipeGap);
+    pipes.push({ x: canvas.width, top: pipeTop, bottom: pipeTop + pipeGap });
+}
+
+// Draw pipes
+function drawPipes() {
+    ctx.fillStyle = 'green';
+    pipes.forEach(pipe => {
+        ctx.fillRect(pipe.x, 0, pipeWidth, pipe.top);
+        ctx.fillRect(pipe.x, pipe.bottom, pipeWidth, canvas.height - pipe.bottom);
+        pipe.x -= 3; // Move pipes left
+    });
+
+    // Remove off-screen pipes
+    if (pipes.length && pipes[0].x < -pipeWidth) {
+        pipes.shift();
+    }
+}
+
+// Game loop
+function update() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Update bird
+    bird.velocity += bird.gravity;
+    bird.y += bird.velocity;
+    if (bird.y > canvas.height - bird.size) bird.y = canvas.height - bird.size; // Ground collision
+    if (bird.y < bird.size) bird.y = bird.size; // Ceiling collision
+    drawBird();
+
+    // Add pipes periodically
+    if (frameCount % 120 === 0) addPipe();
+    drawPipes();
+
+    frameCount++;
+    requestAnimationFrame(update);
+}
+
+// Jump on click
+canvas.addEventListener('click', () => {
+    bird.velocity = bird.lift;
+});
+
+// Start game
+update();
